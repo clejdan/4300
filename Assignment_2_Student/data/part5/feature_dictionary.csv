@@ -1,0 +1,9 @@
+feature,description,unit,minimum,maximum,step
+load_index,Normalized synthetic equipment measurement,index,0,1,0.001
+warning_index,Normalized synthetic equipment measurement,index,0,1,0.001
+maintenance_gap,Normalized synthetic equipment measurement,index,0,1,0.001
+age_index,Normalized synthetic equipment measurement,index,0,1,0.001
+pressure_index,Normalized synthetic equipment measurement,index,0,1,0.001
+vibration_index,Normalized synthetic equipment measurement,index,0,1,0.001
+temperature_index,Normalized synthetic equipment measurement,index,0,1,0.001
+ambient_index,Normalized synthetic equipment measurement,index,0,1,0.001

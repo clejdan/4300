@@ -1,0 +1,6 @@
+feature,description,unit,minimum,maximum,step
+wait_minutes,Time waiting for service,minutes,0,120,0.1
+backlog_cases,Open cases awaiting service,count,0,200,1.0
+dissatisfaction,Customer dissatisfaction index,index,0,1,0.001
+agent_experience,Assigned agent experience,years,0,15,0.1
+service_complexity,Complexity index,index,0,1,0.001
