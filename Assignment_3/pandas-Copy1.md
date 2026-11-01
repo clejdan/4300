@@ -7,19 +7,27 @@ import numpy as np
 import yfinance as yf
 import torch.utils.data import Dataset, DataLoader
 
-data = yf.download("AAPL", start="2020-01-01", end="2026-01-01")
+df = yf.download("AAPL", start="2020-01-01", end="2026-01-01")
 ```
 ---
+
+## cool settings, side note
+- pd.set_option('display.max_rows', None)
+
+- print("Unknown" in df["country"].unique())
+
+- .tolist()
 ## 1. First things to check on any new DataFrame
 
 ```python
-data.head()        # first 5 rows, quick sanity check
-data.tail()         # last 5 rows
-data.shape          # (rows, columns), e.g. (1500, 6)
-data.columns        # list of column names
-data.dtypes         # data type of each column
-data.info()         # combines shape, dtypes, and null counts
-data.describe()     # mean, std, min, max, quartiles for numeric columns
+df.head()        # first 5 rows, quick sanity check
+df.tail()         # last 5 rows
+df.shape          # (rows, columns), e.g. (1500, 6)
+df.columns        # list of column names
+df.dtypes         # data type of each column
+df.info()         # combines shape, dtypes, and null counts
+df.describe()     # mean, std, min, max, quartiles for numeric columns
+df.duplicated().sum() # check the # of duplicated rows in the dataframe
 ```
 
 Run these every time you load new data. Half of debugging a broken pipeline is catching a wrong shape or an unexpected NaN early.
@@ -31,8 +39,9 @@ Run these every time you load new data. Half of debugging a broken pipeline is c
 ## 2. Selecting columns
 
 ```python
-data['Close']                    # one column, returns a Series
-data[['Close', 'Volume']]        # multiple columns, returns a DataFrame (note the double brackets)
+df['Close']                    # one column, returns a Series
+df[['Close', 'Volume']]        # multiple columns, returns a DataFrame (note the double brackets)
+df["Column"].value_counts()    #get unique values alongside their counts in the dataframe
 ```
 
 **One bracket = Series (1D). Two brackets = DataFrame (2D)**, even if it's just one column. This trips people up constantly, keep it in mind.
@@ -44,17 +53,17 @@ data[['Close', 'Volume']]        # multiple columns, returns a DataFrame (note t
 ## 3. Selecting rows
 
 ```python
-data.iloc[0]              # first row, by position
-data.iloc[0:10]           # first 10 rows, by position
-data.iloc[-5:]            # last 5 rows
+df.iloc[0]              # first row, by position
+df.iloc[0:10]           # first 10 rows, by position
+df.iloc[-5:]            # last 5 rows
 
-data.loc['2024-01-01']    # row by label (here, the date index)
-data.loc['2024-01-01':'2024-01-10']   # range by label
+df.loc['2024-01-01']    # row by label (here, the date index)
+df.loc['2024-01-01':'2024-01-10']   # range by label
 ```
 
 `iloc` = position-based (like list indexing). `loc` = label-based (uses the actual index values, like dates).
 
-**Why this matters for ML:** this is how you do your train/test split for time series data correctly. You already learned that shuffling stock data before splitting leaks future information into training. `iloc` with a fixed position range (like `data.iloc[:split_idx]`) is exactly how you split chronologically instead of randomly.
+**Why this matters for ML:** this is how you do your train/test split for time series data correctly. You already learned that shuffling stock data before splitting leaks future information into training. `iloc` with a fixed position range (like `df.iloc[:split_idx]`) is exactly how you split chronologically instead of randomly.
 
 ---
 
@@ -63,10 +72,10 @@ data.loc['2024-01-01':'2024-01-10']   # range by label
 This is the one you'll use constantly.
 
 ```python
-data[data['Close'] > 150]                     # rows where Close is above 150
-data[(data['Close'] > 150) & (data['Volume'] > 1000000)]   # multiple conditions, use & not "and"
-data[data['Close'].isna()]                     # rows where Close is missing
-data[~data['Close'].isna()]                    # rows where Close is NOT missing (~ means "not")
+df[df['Close'] > 150]                     # rows where Close is above 150
+df[(df['Close'] > 150) & (df['Volume'] > 1000000)]   # multiple conditions, use & not "and"
+df[df['Close'].isna()]                     # rows where Close is missing
+df[~df['Close'].isna()]                    # rows where Close is NOT missing (~ means "not")
 ```
 
 Important: use `&` and `|`, not `and`/`or`, when combining conditions on a Series. Also wrap each condition in parentheses.
@@ -78,11 +87,11 @@ Important: use `&` and `|`, not `and`/`or`, when combining conditions on a Serie
 ## 5. Creating new columns
 
 ```python
-data['return'] = data['Close'].pct_change()          # percent change from previous row
-data['next_close'] = data['Close'].shift(-1)          # shift column UP by 1 (tomorrow's value, on today's row)
-data['prev_close'] = data['Close'].shift(1)           # shift column DOWN by 1 (yesterday's value)
-data['ma_5'] = data['Close'].rolling(window=5).mean() # 5-day rolling average
-data['log_return'] = np.log(data['Close'] / data['Close'].shift(1))  # log returns
+df['return'] = df['Close'].pct_change()          # percent change from previous row
+df['next_close'] = df['Close'].shift(-1)          # shift column UP by 1 (tomorrow's value, on today's row)
+df['prev_close'] = df['Close'].shift(1)           # shift column DOWN by 1 (yesterday's value)
+df['ma_5'] = df['Close'].rolling(window=5).mean() # 5-day rolling average
+df['log_return'] = np.log(df['Close'] / df['Close'].shift(1))  # log returns
 ```
 
 `shift(-1)` looks forward (useful for prediction targets). `shift(1)` looks backward (useful for lagged features). Getting the sign backwards here is a common, quiet bug, double check which direction you meant.
@@ -96,11 +105,11 @@ data['log_return'] = np.log(data['Close'] / data['Close'].shift(1))  # log retur
 Rolling averages and shifts always create NaN values at the start or end of your data. You must handle these before feeding data into a model.
 
 ```python
-data.isna().sum()             # count of NaN values per column, always check this after feature engineering
-data.dropna()                 # drop any row with at least one NaN
-data.dropna(subset=['ma_5'])  # only drop rows where ma_5 specifically is NaN
-data.fillna(0)                # replace NaN with 0 (rarely the right choice for price data)
-data.fillna(method='ffill')   # forward-fill: carry the last valid value forward
+df.isna().sum()             # count of NaN values per column, always check this after feature engineering
+df.dropna()                 # drop any row with at least one NaN
+df.dropna(subset=['ma_5'])  # only drop rows where ma_5 specifically is NaN
+df.fillna(0)                # replace NaN with 0 (rarely the right choice for price data)
+df.fillna(method='ffill')   # forward-fill: carry the last valid value forward
 ```
 
 For Minance specifically: after adding rolling averages or shifts, always run `data.dropna()` before converting to tensors. A NaN inside a tensor will silently corrupt your loss calculation (loss becomes `nan` and training breaks).
@@ -112,9 +121,9 @@ For Minance specifically: after adding rolling averages or shifts, always run `d
 ## 7. Sorting
 
 ```python
-data.sort_values('Volume')                  # ascending by default
-data.sort_values('Volume', ascending=False) # descending
-data.sort_index()                            # sort by the index (usually date)
+df.sort_values('Volume')                  # ascending by default
+df.sort_values('Volume', ascending=False) # descending
+df.sort_index()                            # sort by the index (usually date)
 ```
 
 **Why this matters for ML:** less critical day to day, but `sort_index()` matters any time you've merged or filtered data, since those operations can scramble row order. Rolling averages and shifts assume chronological order. If your dates are out of order when you call `.rolling()` or `.shift()`, you get numbers that look valid but are computed against the wrong neighboring rows, a silent correctness bug, not a crash.
@@ -126,8 +135,8 @@ data.sort_index()                            # sort by the index (usually date)
 Less common for single-stock work, but essential once you pull multiple tickers.
 
 ```python
-data.groupby('ticker')['Close'].mean()       # average close price per ticker
-data.groupby('ticker').agg({
+df.groupby('ticker')['Close'].mean()       # average close price per ticker
+df.groupby('ticker').agg({
     'Close': 'mean',
     'Volume': 'sum'
 })
@@ -158,11 +167,11 @@ This is the step where your pandas work hands off to your model.
 
 ```python
 # pandas -> numpy
-arr = data['Close'].values          # returns a numpy array
+arr = df['Close'].values          # returns a numpy array
 
 # pandas -> PyTorch tensor directly
 import torch
-tensor = torch.tensor(data['Close'].values, dtype=torch.float32)
+tensor = torch.tensor(df['Close'].values, dtype=torch.float32)
 
 # Reshape a 1D column into a (N, 1) column vector, needed for most model inputs
 tensor = tensor.view(-1, 1)
