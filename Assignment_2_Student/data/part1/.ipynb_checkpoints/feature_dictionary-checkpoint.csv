@@ -1,9 +1,0 @@
-feature,description,unit,minimum,maximum,step
-floor_area,Synthetic building measurement,square feet,500.63732643443427,4998.8696644979145,0.001
-survey_area,Synthetic building measurement,square feet,499.3816155790329,5000.723550353276,0.001
-occupants,Synthetic building measurement,count,1.0,79.0,0.001
-outside_temperature,Synthetic building measurement,degrees C,0.004584223109864172,34.98486240222134,0.001
-building_age,Synthetic building measurement,years,0.12290748581511579,79.94519619316164,0.001
-meter_noise_1,Synthetic building measurement,arbitrary,-4.0381754102376926,3.9492081903562615,0.001
-meter_noise_2,Synthetic building measurement,arbitrary,-3.3372448841238858,3.0388008752516966,0.001
-meter_noise_3,Synthetic building measurement,arbitrary,-3.515197327822816,3.4815716382883397,0.001
