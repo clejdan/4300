@@ -1,0 +1,6 @@
+AI USE
+1. Speed up the AUC, decision tree
+2. Any instructions requiring metrics (like recall, precision) numbered metrics, generated the markdown chart for readability.
+3. Structuring Plots Asking AI for snippets to generate plots and confusion matrices.
+4. Ensure the runtime is not greater than 15 minutes by keeping a running clock of the entire cell being ran.
+5. Assisting with the syntax for SVMs and decision tree given prior decision tree notebooks I have coded before.
